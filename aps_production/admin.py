@@ -4,6 +4,17 @@ from django.contrib import admin
 from . import models
 
 
+# Inlines ====================================================================
+
+class OrderLineInlineAdmin(admin.TabularInline):
+    model = models.OrderLine
+
+
+class ShipmentInlineAdmin(admin.TabularInline):
+    model = models.Shipment
+
+# Admins =====================================================================
+
 class ErrorAdmin(admin.ModelAdmin):
     """Custom admin for the ``Error`` model."""
     list_display = ('order_run', 'error_bin', 'quantity', 'comment')
@@ -18,6 +29,7 @@ class OrderAdmin(admin.ModelAdmin):
     """Custom admin for the ``Order`` model."""
     list_display = ('order_number', 'company', 'date_created',
                     'customer_po_number', 'customer_po_date')
+    inlines = [OrderLineInlineAdmin]
 
 
 class OrderLineAdmin(admin.ModelAdmin):
@@ -32,6 +44,7 @@ class OrderRunAdmin(admin.ModelAdmin):
                     'quantity_started', 'quantity_dest_out', 'quantity_out',
                     'is_open', 'comment')
     list_filter = ['is_open']
+    inlines = [ShipmentInlineAdmin]
 
 
 class ShipmentAdmin(admin.ModelAdmin):
