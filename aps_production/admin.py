@@ -9,3 +9,5 @@
 #    search_fields = ['some', 'fieds', ]
 
 # admin.site.register(models.YourModel, YourModelAdmin)
+
+# TODO also add admins for the new aps bom stuff )m

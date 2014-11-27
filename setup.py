@@ -38,6 +38,7 @@ dev_requires = [
 
 install_requires = [
     'django',
+    'django-aps-bom>0.6.1'
 ]
 
 
