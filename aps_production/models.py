@@ -1,7 +1,8 @@
 """Models for the aps_production app."""
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.timezone import timedelta
+from django.utils.translation import ugettext_lazy as _
 
 
 class Error(models.Model):
@@ -160,11 +161,31 @@ class OrderLine(models.Model):
 
     @property
     def date_shipped(self):
-        return None  # TODO
+
+        shipments = Shipment.objects.filter(
+            order_run__in=self.order_runs.all(),
+            order_run__is_open=False,
+        )
+        if not shipments:
+            return None
+        # if the sum of all shipped items for this line is equal to all
+        # actually produced items, we can consider it fully shipped
+        if shipments.aggregate(models.Sum('quantity'))['quantity__sum'] == (
+            self.order_runs.all().aggregate(models.Sum('quantity_out'))[
+                'quantity_out__sum'
+            ]
+        ):
+            return shipments.order_by('-date_shipped')[0].date_shipped
+        return None
 
     @property
     def date_delivered(self):
-        return None  # TODO
+        shipped = self.date_shipped
+        shipping_days = self.order.company.shipping_days
+        if not shipped or not shipping_days:
+            return None
+        return self.date_shipped + timedelta(
+            days=self.order.company.shipping_days)
 
     class Meta:
         ordering = ('order', 'line_no')
@@ -217,10 +238,12 @@ class OrderRun(models.Model):
 
     quantity_dest_out = models.PositiveIntegerField(
         verbose_name=_('quantity dest out'),
+        blank=True, null=True,
     )
 
     quantity_out = models.PositiveIntegerField(
         verbose_name=_('quantity out'),
+        blank=True, null=True,
     )
 
     is_open = models.BooleanField(

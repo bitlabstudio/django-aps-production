@@ -66,5 +66,5 @@ class ShipmentFactory(factory.DjangoModelFactory):
     FACTORY_FOR = models.Shipment
 
     order_run = factory.SubFactory(OrderRunFactory)
-    quantity = 500
+    quantity = 990
     date_shipped = now()
