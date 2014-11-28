@@ -164,9 +164,9 @@ class OrderLine(models.Model):
 
         shipments = Shipment.objects.filter(
             order_run__in=self.order_runs.all(),
-            order_run__is_open=False,
+            # order_run__is_open=False,
         )
-        if not shipments:
+        if not shipments or shipments.filter(order_run__is_open=True).exists():
             return None
         # if the sum of all shipped items for this line is equal to all
         # actually produced items, we can consider it fully shipped
@@ -197,15 +197,16 @@ class OrderRun(models.Model):
     One production run for a line of an order.
 
     :order_line: the order line, for which this run is run
-    :run_number: the number of this run
+    :run_number: the identifying number of this run
     :parent: reference to another order run
     :ipn: what IPN this goes under
     :quantity_started: what number of items we start the run with
-    :quantity_dest_test: how many items have been lost due to errors
-    :quantity_out: how many items this run yielded
+    :quantity_dest_test: how many items have been destroyed in tests
+    :quantity_out: how many items this run yielded. This plus the items
+      destroyed in tests subtracted from the quantity we started with, equals
+      the amount of items lost through errors.
     :is_open: if the run is still in progress. Defaults to True
     :comment: comments on this run for additional notes
-
 
     """
     order_line = models.ForeignKey(
